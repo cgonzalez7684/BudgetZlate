@@ -36,7 +36,7 @@ Crear `CLAUDE.md` y `docs/` (alcance, arquitectura, tareas, progreso) sin modifi
 
 ---
 
-## [ ] T2 — Formulario para agregar gastos
+## [x] T2 — Formulario para agregar gastos
 
 **Objetivo:** crear gastos desde un formulario.
 
@@ -54,9 +54,11 @@ Crear `CLAUDE.md` y `docs/` (alcance, arquitectura, tareas, progreso) sin modifi
 - Prueba de widget: guardar con campos vacíos muestra errores; un gasto válido aparece en la lista.
 - Manual en el emulador.
 
+**Resultado (2026-10-17):** completada. 25 pruebas en verde; flujo completo probado en el emulador. Decisiones: dependencia `flutter_localizations` (SDK) para el selector de fecha en español; `Gasto.id` pasa a ser `String?` (lo asigna el repositorio al guardar); la categoría no tiene valor por defecto (hay que elegirla); no se permiten fechas futuras.
+
 ---
 
-## [ ] T3 — Edición y eliminación
+## [x] T3 — Edición y eliminación
 
 **Objetivo:** modificar y borrar gastos existentes.
 
@@ -71,13 +73,15 @@ Crear `CLAUDE.md` y `docs/` (alcance, arquitectura, tareas, progreso) sin modifi
 - Prueba de widget: editar cambia el texto mostrado; eliminar con confirmación lo quita; cancelar lo conserva.
 - Manual en el emulador.
 
+**Resultado (2026-10-17):** completada. 36 pruebas en verde; editar, cancelar y eliminar probados en el emulador sin errores en el registro. Decisiones: eliminar se hace deslizando la fila hacia la izquierda (`Dismissible`) con diálogo de confirmación; el formulario es el mismo para crear y editar (`FormularioGastoScreen(gasto: ...)`); actualizar o eliminar un id inexistente lanza `StateError`.
+
 ---
 
-## [ ] T4 — Autenticación y persistencia en Supabase con RLS
+## [x] T4 — Autenticación y persistencia en Supabase con RLS
 
 Se divide en dos partes que se entregan por separado.
 
-### T4a — Autenticación
+### [x] T4a — Autenticación
 
 **Conceptos:** proyecto Supabase, clave pública vs `service_role`, `--dart-define`, `Supabase.initialize`, sesión y `onAuthStateChange`.
 
@@ -95,7 +99,9 @@ Se divide en dos partes que se entregan por separado.
 - `git grep -i -E "service_role|eyJ"` sin resultados en código versionado.
 - Prueba de widget de la pantalla de acceso (validación de campos, sin red).
 
-### T4b — Persistencia y RLS
+**Resultado (2026-10-17):** completada. 52 pruebas en verde; búsqueda de claves sin resultados; prueba manual en el teléfono del usuario OK (iniciar sesión, sesión guardada al reabrir, cerrar sesión, contraseña incorrecta). Pendiente menor: probar de principio a fin el correo de confirmación (límite del SMTP gratuito). Decisiones: `supabase_flutter` 2.18.3 aprobada; se mantiene la confirmación de correo; contrato `Autenticacion` + `AutenticacionSupabase` para poder probar sin red; permiso `INTERNET` añadido al manifiesto principal de Android.
+
+### [x] T4b — Persistencia y RLS
 
 **Conceptos:** SQL en Supabase, RLS y políticas, `fromMap`/`toMap`, manejo de errores de red.
 
@@ -111,6 +117,8 @@ Se divide en dos partes que se entregan por separado.
 - Las pruebas de widget siguen usando el repositorio en memoria.
 - Manual con usuarios A y B; en el SQL Editor, comprobar que RLS está activo (`select relrowsecurity from pg_class where relname = 'gastos';`).
 - Manual: consulta REST con la clave pública y el token de B no devuelve gastos de A.
+
+**Resultado (2026-10-17):** completada. 59 pruebas en verde; APK compila; búsqueda de claves sin resultados. El usuario aplicó el SQL e informó que todas las pruebas manuales pasaron (RLS y 4 políticas, persistencia al reabrir, usuarios A y B aislados, REST sin sesión denegado, modo avión con aviso y "Reintentar"). Ajuste de la verificación: en lugar de obtener a mano el token de B (incómodo), se comprueba (1) que sin sesión la API REST no devuelve nada, (2) en la app con usuarios A y B, y (3) en el SQL Editor con `supabase/verificar_rls.sql` y, si el panel lo ofrece, ejecutando consultas con el rol de B.
 
 ---
 

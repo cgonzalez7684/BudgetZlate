@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Necesario para conectarse a Supabase también en builds release
+         (los manifiestos debug y profile ya lo declaran). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="budget_zlate"
         android:name="${applicationName}"

@@ -23,4 +23,48 @@ void main() {
       expect(formatearColones(10 + 20), '₡0,30');
     });
   });
+
+  group('montoParaEditar', () {
+    test('sin céntimos no muestra decimales', () {
+      expect(montoParaEditar(150000), '1500');
+    });
+
+    test('con céntimos usa coma y dos decimales', () {
+      expect(montoParaEditar(850050), '8500,50');
+      expect(montoParaEditar(5), '0,05');
+    });
+
+    test('el texto se puede volver a convertir al mismo monto', () {
+      for (final centimos in [1, 5, 50, 100, 125050, 2350075, 600000]) {
+        expect(convertirACentimos(montoParaEditar(centimos)), centimos);
+      }
+    });
+  });
+
+  group('convertirACentimos', () {
+    test('textos válidos', () {
+      expect(convertirACentimos('1500'), 150000);
+      expect(convertirACentimos('0,5'), 50);
+      expect(convertirACentimos('0.5'), 50);
+      expect(convertirACentimos('0,05'), 5);
+      expect(convertirACentimos('12,34'), 1234);
+      expect(convertirACentimos('1 500,25'), 150025);
+      expect(convertirACentimos('  7 '), 700);
+    });
+
+    test('cero y negativos se convierten (el formulario los rechaza)', () {
+      expect(convertirACentimos('0'), 0);
+      expect(convertirACentimos('-5'), -500);
+    });
+
+    test('textos inválidos devuelven null', () {
+      expect(convertirACentimos(''), isNull);
+      expect(convertirACentimos('abc'), isNull);
+      expect(convertirACentimos('1,234'), isNull); // más de 2 decimales
+      expect(convertirACentimos('1.500'), isNull); // ídem: no es "mil"
+      expect(convertirACentimos('1,2,3'), isNull);
+      expect(convertirACentimos(',5'), isNull);
+      expect(convertirACentimos('1234567890123'), isNull); // 13 cifras
+    });
+  });
 }

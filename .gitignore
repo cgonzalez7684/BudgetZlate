@@ -46,3 +46,7 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Credenciales locales de Supabase. Copiar config/supabase.example.json a
+# config/supabase.json y rellenarlo; ese archivo no se sube al repositorio.
+/config/supabase.json

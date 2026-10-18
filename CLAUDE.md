@@ -28,10 +28,20 @@ dart format lib test                                        # formatear
 dart format --output=none --set-exit-if-changed lib test    # comprobar formato sin modificar
 flutter analyze                                             # análisis estático (lints)
 flutter test                                                # pruebas
-flutter run -d emulator-5554                                # ejecutar en el emulador Android
+flutter run -d "SM A556E" --dart-define-from-file=config/supabase.json      # teléfono del usuario (referencia)
+flutter run -d emulator-5554 --dart-define-from-file=config/supabase.json  # emulador (alternativa)
+git grep --untracked -nIE "service_role|sb_secret_[A-Za-z0-9_-]{10,}|eyJ[A-Za-z0-9_-]{20,}" -- . ':!docs/*' ':!CLAUDE.md'  # no debe encontrar claves
 ```
 
+`config/supabase.json` está en `.gitignore`: lo crea el usuario a partir de `config/supabase.example.json`. El agente no lo lee ni pide su contenido.
+
 Antes de dar una tarea por terminada: formato, `flutter analyze` sin problemas y `flutter test` en verde.
+
+### Dispositivo de referencia
+
+- La app se ejecuta en el **teléfono del usuario** (Samsung SM A556E, Android 16), conectado por USB.
+- El agente no interactúa con el teléfono (tocar, escribir, deslizar): es un dispositivo personal. Las pruebas manuales en el teléfono las hace el usuario, siguiendo los pasos que el agente le indique.
+- El agente puede usar el **emulador** para sus propias revisiones visuales y lo informa como "verificado en emulador", no "en el teléfono".
 
 ## Reporte de verificaciones
 

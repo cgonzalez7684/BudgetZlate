@@ -14,12 +14,36 @@ class GastosRepositoryMemoria implements GastosRepository {
       GastosRepositoryMemoria(gastosDeEjemplo);
 
   final List<Gasto> _gastos;
+  int _siguienteId = 1;
 
   @override
   Future<List<Gasto>> obtenerGastos() async {
     final ordenados = List.of(_gastos)
       ..sort((a, b) => b.fecha.compareTo(a.fecha));
     return List.unmodifiable(ordenados);
+  }
+
+  @override
+  Future<void> agregar(Gasto gasto) async {
+    _gastos.add(gasto.copyWith(id: 'memoria-${_siguienteId++}'));
+  }
+
+  @override
+  Future<void> actualizar(Gasto gasto) async {
+    _gastos[_posicionDe(gasto.id)] = gasto;
+  }
+
+  @override
+  Future<void> eliminar(String id) async {
+    _gastos.removeAt(_posicionDe(id));
+  }
+
+  /// Posición del gasto en la lista. Si no existe es un error de programación
+  /// (p. ej. un id equivocado), así que se lanza en vez de ignorarlo.
+  int _posicionDe(String? id) {
+    final posicion = _gastos.indexWhere((g) => g.id == id);
+    if (posicion == -1) throw StateError('No existe un gasto con id $id');
+    return posicion;
   }
 }
 
