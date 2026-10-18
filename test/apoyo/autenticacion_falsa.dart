@@ -25,6 +25,12 @@ class AutenticacionFalsa implements Autenticacion {
   /// Cuántas veces se llamó a iniciarSesion o registrarse.
   int llamadas = 0;
 
+  /// Correos a los que se pidió reenviar la confirmación.
+  final reenvios = <String>[];
+
+  /// Si no es null, reenviarConfirmacion lanza este error.
+  ErrorAutenticacion? errorAlReenviar;
+
   @override
   Stream<bool> get cambiosDeSesion => _cambios.stream;
 
@@ -48,6 +54,12 @@ class AutenticacionFalsa implements Autenticacion {
     if (error != null) throw error!;
     if (registroConSesion) _cambiar(true);
     return registroConSesion;
+  }
+
+  @override
+  Future<void> reenviarConfirmacion({required String correo}) async {
+    if (errorAlReenviar != null) throw errorAlReenviar!;
+    reenvios.add(correo);
   }
 
   @override

@@ -4,7 +4,7 @@
 
 ## Estado actual
 
-**Versión 1 completa (2026-10-17):** T0–T5 terminadas. T2–T4 están en el commit `3832082` (en `main`, sin push); T5 está sin commit. No hay más tareas definidas en `docs/tareas.md`: la siguiente decisión es del usuario (ver "Próximos pasos posibles").
+**Versión 1 completa y pulida (2026-10-17):** T0–T6 terminadas y confirmadas en `main` (commits `3832082` T2–T4, `3c88ad6` T5 y el de T6), sin push. No hay más tareas definidas; la siguiente decisión es del usuario (ver "Próximos pasos posibles").
 
 ### Informado por el usuario (no verificado por el agente)
 
@@ -155,19 +155,36 @@ No verificado por el agente: la pantalla con datos reales de Supabase (requiere 
 - [x] T4a — Autenticación
 - [x] T4b — Persistencia con RLS
 - [x] T5 — Filtro y resumen mensual
+- [x] T6 — Pulido de la versión 1
+
+**T6 (2026-10-17)**
+
+| Comprobación | Resultado |
+|--------------|-----------|
+| `git commit` de T5 (pedido por el usuario) | `3c88ad6` en `main`; `config/supabase.json` fuera |
+| `dart format` / `--set-exit-if-changed` | Sin cambios |
+| `flutter analyze` | No issues found |
+| `flutter test` | 90 pruebas, todas pasan. Nuevas: sin errores antes del primer intento; error que desaparece al corregir (formulario y acceso); "Nuevo gasto" sin papelera; eliminar desde "Editar gasto" (confirmar y cancelar); reenviar correo (oculto al inicio, tras crear cuenta, con correo sin confirmar, error en español, sin necesitar contraseña) |
+| Búsqueda de claves | Sin resultados |
+| `aapt2 dump badging` del APK | `application-label:'BudgetZlate'` |
+| Emulador con datos en memoria (punto de entrada temporal, ya borrado) | Papelera en "Editar gasto" → "¿Eliminar gasto?" → lista sin "Supermercado", total ₡20 820,50 y `Se eliminó "Supermercado"`; en "Nuevo gasto", el error de Descripción desapareció al escribir "Taxi" y los demás siguieron. `logcat`: 0 errores de Flutter |
+
+No verificado por el agente: el nombre bajo el icono en el lanzador del teléfono, eliminar desde edición con Supabase y el reenvío real del correo.
+
+**Pruebas en el teléfono (confirmadas por el usuario, 2026-10-17; no verificadas por el agente):**
+
+1. `flutter run -d "SM A556E" --dart-define-from-file=config/supabase.json`
+2. En el cajón de apps, el icono se llama "BudgetZlate".
+3. Tocar un gasto → papelera (arriba a la derecha) → "Cancelar" se queda en el formulario; "Eliminar" vuelve a la lista sin el gasto y muestra el aviso.
+4. En "Nuevo gasto": "Guardar" vacío → errores; escribir la descripción → su error desaparece al momento.
+5. Opcional (gasta el límite de correos): cerrar sesión, "Crear cuenta" con un correo nuevo → aparece "Reenviar correo de confirmación"; pulsarlo → "Te reenviamos el correo…" o, si se alcanzó el límite, "Demasiados intentos…".
 
 ## Pendientes
 
-- Hacer commit de T5 (T2–T4 ya están en `3832082`). Hacer push a GitHub cuando el usuario lo decida.
+- Push a GitHub cuando el usuario lo decida.
 
 ## Próximos pasos posibles (no son tareas aún; el usuario decide)
 
-Mejoras pequeñas de la versión 1 (observadas durante el desarrollo):
-
-- Nombre de la app bajo el icono: sigue siendo `budget_zlate` (`android/app/src/main/AndroidManifest.xml`) → "BudgetZlate".
-- Mensajes de validación que desaparecen al corregir el campo (`autovalidateMode: AutovalidateMode.onUserInteraction`).
-- Botón "Eliminar" también en "Editar gasto" (deslizar es poco evidente).
-- Botón "Reenviar correo de confirmación" en la pantalla de acceso.
 - Correo de confirmación de principio a fin: configurar un SMTP propio en Supabase (Resend, Brevo…).
 
 Fuera de alcance de la versión 1 (`docs/alcance.md`), candidatos para una versión 2: comprobantes o fotos de recibos, notificaciones, funcionamiento sin conexión, categorías personalizadas, presupuestos, gráficos, exportación.

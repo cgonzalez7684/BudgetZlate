@@ -17,6 +17,9 @@ class AccesoScreen extends StatefulWidget {
 
 class _AccesoScreenState extends State<AccesoScreen> {
   final _formKey = GlobalKey<FormState>();
+  // Clave de un solo campo: permite validar el correo sin la contraseña
+  // (para reenviar el correo de confirmación solo hace falta el correo).
+  final _correoKey = GlobalKey<FormFieldState<String>>();
   final _correoController = TextEditingController();
   final _contrasenaController = TextEditingController();
 
@@ -24,6 +27,10 @@ class _AccesoScreenState extends State<AccesoScreen> {
   bool _mostrarContrasena = false;
   String? _error;
   String? _aviso;
+
+  /// Se muestra "Reenviar correo de confirmación" tras crear una cuenta o si
+  /// Supabase dice que el correo aún no está confirmado.
+  bool _puedeReenviar = false;
 
   @override
   void dispose() {
@@ -51,8 +58,16 @@ class _AccesoScreenState extends State<AccesoScreen> {
 
   /// Valida el formulario, ejecuta [accion] mostrando un indicador de carga
   /// y muestra el error en español si falla.
-  Future<void> _enviar(Future<void> Function(String, String) accion) async {
-    if (!_formKey.currentState!.validate()) return;
+  ///
+  /// Con [soloCorreo] se valida únicamente el campo de correo.
+  Future<void> _enviar(
+    Future<void> Function(String, String) accion, {
+    bool soloCorreo = false,
+  }) async {
+    final valido = soloCorreo
+        ? _correoKey.currentState!.validate()
+        : _formKey.currentState!.validate();
+    if (!valido) return;
 
     setState(() {
       _cargando = true;
@@ -62,7 +77,12 @@ class _AccesoScreenState extends State<AccesoScreen> {
     try {
       await accion(_correoController.text.trim(), _contrasenaController.text);
     } on ErrorAutenticacion catch (e) {
-      if (mounted) setState(() => _error = e.mensaje);
+      if (mounted) {
+        setState(() {
+          _error = e.mensaje;
+          if (e.correoSinConfirmar) _puedeReenviar = true;
+        });
+      }
     } finally {
       // Si inició sesión, esta pantalla ya no está (mounted es false).
       if (mounted) setState(() => _cargando = false);
@@ -83,6 +103,18 @@ class _AccesoScreenState extends State<AccesoScreen> {
         _aviso =
             'Te enviamos un correo a $correo. Abre el enlace para confirmar '
             'tu cuenta y luego inicia sesión aquí.';
+        _puedeReenviar = true;
+      });
+    }
+  }
+
+  Future<void> _reenviarConfirmacion(String correo, String _) async {
+    await widget.autenticacion.reenviarConfirmacion(correo: correo);
+    if (mounted) {
+      setState(() {
+        _aviso =
+            'Te reenviamos el correo de confirmación a $correo. Revisa '
+            'también la carpeta de spam.';
       });
     }
   }
@@ -97,6 +129,9 @@ class _AccesoScreenState extends State<AccesoScreen> {
       ),
       body: Form(
         key: _formKey,
+        // Tras el primer intento, un campo con error se revalida mientras se
+        // escribe, así el mensaje desaparece en cuanto se corrige.
+        autovalidateMode: AutovalidateMode.onUserInteractionIfError,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -108,6 +143,7 @@ class _AccesoScreenState extends State<AccesoScreen> {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               TextFormField(
+                key: _correoKey,
                 controller: _correoController,
                 decoration: const InputDecoration(
                   labelText: 'Correo',
@@ -154,6 +190,12 @@ class _AccesoScreenState extends State<AccesoScreen> {
                   onPressed: () => _enviar(_registrarse),
                   child: const Text('Crear cuenta'),
                 ),
+                if (_puedeReenviar)
+                  TextButton(
+                    onPressed: () =>
+                        _enviar(_reenviarConfirmacion, soloCorreo: true),
+                    child: const Text('Reenviar correo de confirmación'),
+                  ),
               ],
             ],
           ),

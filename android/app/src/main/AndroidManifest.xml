@@ -3,7 +3,7 @@
          (los manifiestos debug y profile ya lo declaran). -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="budget_zlate"
+        android:label="BudgetZlate"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

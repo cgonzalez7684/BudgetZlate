@@ -7,6 +7,7 @@ import '../models/gasto.dart';
 import '../utils/formato_fecha.dart';
 import '../utils/formato_moneda.dart';
 import '../utils/resumen_mensual.dart';
+import 'confirmar_eliminacion.dart';
 import 'formulario_gasto_screen.dart';
 
 /// Pantalla principal: lista de gastos.
@@ -94,57 +95,40 @@ class _ListaGastosScreenState extends State<ListaGastosScreen> {
   }
 
   /// Abre el formulario (vacío, o con [gasto] para editarlo), espera el
-  /// resultado y lo guarda.
+  /// resultado y lo guarda o lo elimina.
   Future<void> _abrirFormulario({Gasto? gasto}) async {
-    final resultado = await Navigator.push<Gasto>(
+    final resultado = await Navigator.push<ResultadoFormulario>(
       context,
       MaterialPageRoute(builder: (_) => FormularioGastoScreen(gasto: gasto)),
     );
-    // null: el usuario volvió sin guardar. `mounted`: tras un `await` la
-    // pantalla podría haberse cerrado.
-    if (resultado == null || !mounted) return;
+    // `mounted`: tras un `await` la pantalla podría haberse cerrado.
+    if (!mounted) return;
 
-    final operacion = gasto == null
-        ? widget.repository.agregar(resultado)
-        : widget.repository.actualizar(resultado);
-    // Un Future nuevo hace que el FutureBuilder vuelva a cargar la lista.
-    // Se usa un bloque { } y no una flecha (=>): la flecha devolvería el
-    // Future asignado, y setState no admite funciones que devuelvan Future.
-    setState(() {
-      _gastos = _recargarTras(
-        operacion,
-        siFalla: 'No se pudo guardar el gasto. Revisa tu conexión.',
-      );
-      // Se muestra el mes del gasto guardado, para que no "desaparezca" si
-      // su fecha es de otro mes.
-      _mes = inicioDeMes(resultado.fecha);
-    });
-  }
-
-  /// Muestra un diálogo y devuelve `true` solo si el usuario confirma.
-  Future<bool> _confirmarEliminacion(Gasto gasto) async {
-    final confirmado = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('¿Eliminar gasto?'),
-        content: Text(
-          '"${gasto.descripcion}" (${formatearColones(gasto.montoCentimos)}) '
-          'se eliminará. Esta acción no se puede deshacer.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Eliminar'),
-          ),
-        ],
-      ),
-    );
-    // Cerrar el diálogo tocando fuera devuelve null: se trata como "no".
-    return confirmado ?? false;
+    // `switch` con patrones: según qué subclase llegó, se hace una cosa u
+    // otra. Como ResultadoFormulario es `sealed`, si mañana se añade un caso
+    // nuevo el analizador señala este switch como incompleto.
+    switch (resultado) {
+      case null:
+        return; // el usuario volvió sin guardar
+      case EliminarGasto():
+        _eliminarGasto(gasto!);
+      case GuardarGasto(gasto: final guardado):
+        final operacion = gasto == null
+            ? widget.repository.agregar(guardado)
+            : widget.repository.actualizar(guardado);
+        // Un Future nuevo hace que el FutureBuilder vuelva a cargar la lista.
+        // Se usa un bloque { } y no una flecha (=>): la flecha devolvería el
+        // Future asignado, y setState no admite funciones que devuelvan Future.
+        setState(() {
+          _gastos = _recargarTras(
+            operacion,
+            siFalla: 'No se pudo guardar el gasto. Revisa tu conexión.',
+          );
+          // Se muestra el mes del gasto guardado, para que no "desaparezca"
+          // si su fecha es de otro mes.
+          _mes = inicioDeMes(guardado.fecha);
+        });
+    }
   }
 
   void _eliminarGasto(Gasto gasto) {
@@ -235,7 +219,7 @@ class _ListaGastosScreenState extends State<ListaGastosScreen> {
           key: ValueKey(gasto.id),
           direction: DismissDirection.endToStart,
           background: const _FondoEliminar(),
-          confirmDismiss: (_) => _confirmarEliminacion(gasto),
+          confirmDismiss: (_) => confirmarEliminacion(context, gasto),
           onDismissed: (_) => _eliminarGasto(gasto),
           child: _GastoTile(
             gasto: gasto,

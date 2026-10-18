@@ -4,12 +4,34 @@ import '../models/categoria.dart';
 import '../models/gasto.dart';
 import '../utils/formato_fecha.dart';
 import '../utils/formato_moneda.dart';
+import 'confirmar_eliminacion.dart';
+
+/// Lo que el formulario devuelve con `Navigator.pop`.
+///
+/// `sealed` significa que solo existen las subclases de este archivo; así un
+/// `switch` sobre el resultado sabe que contempla todos los casos (y el
+/// analizador avisa si falta alguno).
+sealed class ResultadoFormulario {
+  const ResultadoFormulario();
+}
+
+/// El usuario pulsó "Guardar".
+class GuardarGasto extends ResultadoFormulario {
+  const GuardarGasto(this.gasto);
+
+  final Gasto gasto;
+}
+
+/// El usuario pulsó "Eliminar" en "Editar gasto" y lo confirmó.
+class EliminarGasto extends ResultadoFormulario {
+  const EliminarGasto();
+}
 
 /// Formulario para crear o editar un gasto.
 ///
-/// No guarda nada: al pulsar "Guardar" cierra la pantalla devolviendo el
-/// `Gasto` con `Navigator.pop`, y quien la abrió decide qué hacer con él.
-/// Así el formulario no depende del repositorio.
+/// No guarda ni borra nada: cierra la pantalla devolviendo un
+/// [ResultadoFormulario] con `Navigator.pop`, y quien la abrió decide qué
+/// hacer. Así el formulario no depende del repositorio.
 class FormularioGastoScreen extends StatefulWidget {
   const FormularioGastoScreen({super.key, this.gasto});
 
@@ -100,7 +122,14 @@ class _FormularioGastoScreenState extends State<FormularioGastoScreen> {
       categoria: _categoria!,
       fecha: _fecha,
     );
-    Navigator.pop(context, gasto);
+    Navigator.pop<ResultadoFormulario>(context, GuardarGasto(gasto));
+  }
+
+  Future<void> _eliminar() async {
+    final confirmado = await confirmarEliminacion(context, widget.gasto!);
+    // Si cancela, se queda en el formulario.
+    if (!confirmado || !mounted) return;
+    Navigator.pop<ResultadoFormulario>(context, const EliminarGasto());
   }
 
   @override
@@ -109,9 +138,20 @@ class _FormularioGastoScreenState extends State<FormularioGastoScreen> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(_editando ? 'Editar gasto' : 'Nuevo gasto'),
+        actions: [
+          if (_editando)
+            IconButton(
+              tooltip: 'Eliminar gasto',
+              icon: const Icon(Icons.delete_outline),
+              onPressed: _eliminar,
+            ),
+        ],
       ),
       body: Form(
         key: _formKey,
+        // Tras el primer intento, un campo con error se revalida mientras se
+        // escribe, así el mensaje desaparece en cuanto se corrige.
+        autovalidateMode: AutovalidateMode.onUserInteractionIfError,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(

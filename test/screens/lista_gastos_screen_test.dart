@@ -317,6 +317,42 @@ void main() {
       expect(enLista(find.text('Taxi')), findsOneWidget);
       expect(await repository.obtenerGastos(), hasLength(2));
     });
+
+    testWidgets('eliminar desde "Editar gasto" vuelve a la lista sin él', (
+      tester,
+    ) async {
+      await abrirApp(tester);
+      await tester.tap(find.text('Taxi'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Eliminar gasto'));
+      await tester.pumpAndSettle();
+      expect(find.text('¿Eliminar gasto?'), findsOneWidget);
+      await tester.tap(find.text('Eliminar'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Editar gasto'), findsNothing); // volvió a la lista
+      expect(find.text('Taxi'), findsNothing);
+      expect(find.text('Se eliminó "Taxi"'), findsOneWidget); // SnackBar
+      expect(enLista(find.text('Almuerzo')), findsOneWidget);
+      expect(await repository.obtenerGastos(), hasLength(1));
+    });
+
+    testWidgets('cancelar en "Editar gasto" se queda en el formulario', (
+      tester,
+    ) async {
+      await abrirApp(tester);
+      await tester.tap(find.text('Taxi'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Eliminar gasto'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Editar gasto'), findsOneWidget);
+      expect(await repository.obtenerGastos(), hasLength(2));
+    });
   });
 
   group('errores de conexión', () {

@@ -140,3 +140,24 @@ Se divide en dos partes que se entregan por separado.
 - Manual en el emulador.
 
 **Resultado (2026-10-17):** completada. 79 pruebas en verde; revisión visual en el emulador con datos de ejemplo en memoria (octubre, septiembre, agosto vacío; sumas correctas; "siguiente" desactivado en el mes actual); el usuario lo confirmó en su teléfono con sus datos reales. Decisiones: el filtro y el resumen se calculan en la app sobre todos los gastos cargados (funciones puras en `lib/utils/resumen_mensual.dart`); no se navega a meses futuros; al guardar un gasto la lista salta a su mes; la pantalla acepta `mesInicial` para que las pruebas no dependan de la fecha actual.
+
+---
+
+## [x] T6 — Pulido de la versión 1
+
+**Objetivo:** pequeñas mejoras de uso detectadas durante el desarrollo. No añade funciones nuevas al alcance.
+
+**Conceptos:** `AutovalidateMode`, clases `sealed` y `switch` con patrones, reutilizar un diálogo entre pantallas, `auth.resend` de Supabase, `android:label`.
+
+**Criterios de aceptación:**
+- Bajo el icono de la app, en Android, se lee "BudgetZlate" (no `budget_zlate`).
+- En el formulario de gasto y en el de acceso, un mensaje de error desaparece en cuanto se corrige el campo, sin volver a pulsar el botón; antes del primer intento no se muestran errores.
+- "Editar gasto" tiene un botón "Eliminar" que pide la misma confirmación que al deslizar; al confirmar vuelve a la lista, el gasto desaparece y se muestra el `SnackBar`; al cancelar sigue en el formulario.
+- Tras "Crear cuenta" (o si al iniciar sesión el correo no está confirmado) aparece "Reenviar correo de confirmación"; al pulsarlo se reenvía y se avisa en español; los errores (p. ej. límite de envíos) se muestran en español.
+
+**Verificación:**
+- Pruebas de widget: error que desaparece al corregir (formulario y acceso), eliminar desde "Editar gasto" (confirmar y cancelar), reenviar correo (éxito y error) con la autenticación falsa.
+- `flutter analyze`, `flutter test`, búsqueda de claves.
+- Emulador: formulario y eliminar desde edición (datos en memoria). Teléfono (usuario): nombre bajo el icono, eliminar desde edición con Supabase y, si el límite de correos lo permite, reenviar el correo.
+
+**Resultado (2026-10-17):** completada. 90 pruebas en verde; búsqueda de claves sin resultados; APK con `application-label:'BudgetZlate'` (comprobado con `aapt2 dump badging`); emulador con datos en memoria: papelera en "Editar gasto" → diálogo → "Se eliminó…" y totales actualizados; error de "Descripción" desaparece al escribir. El usuario lo confirmó en su teléfono.

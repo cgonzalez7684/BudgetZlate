@@ -109,4 +109,45 @@ void main() {
     expect(find.text('Selecciona una fecha'), findsOneWidget);
     expect(find.text('Cancelar'), findsOneWidget);
   });
+
+  testWidgets('antes de guardar no se muestran errores al escribir', (
+    tester,
+  ) async {
+    await _abrirFormulario(tester);
+
+    await tester.enterText(_campo('Monto'), 'abc');
+    await tester.pump();
+
+    expect(find.text('Ingresa un monto válido'), findsNothing);
+  });
+
+  testWidgets('un error desaparece en cuanto se corrige el campo', (
+    tester,
+  ) async {
+    await _abrirFormulario(tester);
+    await _guardar(tester);
+    expect(find.text('Ingresa una descripción'), findsOneWidget);
+    expect(find.text('Ingresa un monto'), findsOneWidget);
+
+    await tester.enterText(_campo('Descripción'), 'Taxi');
+    await tester.pump();
+
+    // Sin volver a pulsar "Guardar": el error corregido se va, el otro sigue.
+    expect(find.text('Ingresa una descripción'), findsNothing);
+    expect(find.text('Ingresa un monto'), findsOneWidget);
+
+    await tester.enterText(_campo('Monto'), '0');
+    await tester.pump();
+    expect(find.text('El monto debe ser mayor que cero'), findsOneWidget);
+
+    await tester.enterText(_campo('Monto'), '1500');
+    await tester.pump();
+    expect(find.text('El monto debe ser mayor que cero'), findsNothing);
+  });
+
+  testWidgets('"Nuevo gasto" no tiene botón de eliminar', (tester) async {
+    await _abrirFormulario(tester);
+
+    expect(find.byTooltip('Eliminar gasto'), findsNothing);
+  });
 }

@@ -55,6 +55,15 @@ class AutenticacionSupabase implements Autenticacion {
   }
 
   @override
+  Future<void> reenviarConfirmacion({required String correo}) async {
+    try {
+      await _auth.resend(type: OtpType.signup, email: correo);
+    } on AuthException catch (e) {
+      throw _traducir(e);
+    }
+  }
+
+  @override
   Future<void> cerrarSesion() => _auth.signOut();
 
   /// Registra el error original (solo en modo debug, en la consola de
@@ -67,7 +76,10 @@ class AutenticacionSupabase implements Autenticacion {
         'mensaje=${error.message}',
       );
     }
-    return ErrorAutenticacion(mensajeDeError(error));
+    return ErrorAutenticacion(
+      mensajeDeError(error),
+      correoSinConfirmar: error.code == 'email_not_confirmed',
+    );
   }
 }
 

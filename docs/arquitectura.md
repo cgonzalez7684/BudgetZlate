@@ -20,7 +20,8 @@ lib/
     autenticacion_supabase.dart     # implementación con Supabase Auth (T4a)
   screens/
     lista_gastos_screen.dart
-    formulario_gasto_screen.dart    # sirve para crear y editar
+    formulario_gasto_screen.dart    # crear y editar; devuelve ResultadoFormulario (Guardar/Eliminar)
+    confirmar_eliminacion.dart      # diálogo "¿Eliminar gasto?" compartido (lista y edición)
     acceso_screen.dart              # tarea 4
   utils/
     formato_moneda.dart             # céntimos <-> texto ₡
@@ -86,7 +87,8 @@ abstract class GastosRepository {
 
 - `StatefulWidget` + `setState` y `Navigator.push`/`pop`. Sin paquetes de gestión de estado ni de rutas en la versión 1.
 - El formulario no conoce el repositorio: devuelve el `Gasto` con `Navigator.pop` y la lista lo guarda y recarga. Sirve para crear (`gasto: null`) y editar (recibe el gasto y conserva su `id`).
-- Eliminar: deslizar la fila (`Dismissible`) + diálogo de confirmación + `SnackBar`.
+- Eliminar: deslizar la fila (`Dismissible`) o el botón de papelera en "Editar gasto"; ambos usan `confirmarEliminacion` y terminan con un `SnackBar`. El formulario devuelve una clase `sealed` `ResultadoFormulario` (`GuardarGasto(gasto)` o `EliminarGasto()`) y la lista decide con un `switch`.
+- Formularios: `autovalidateMode: AutovalidateMode.onUserInteractionIfError` (los errores aparecen al intentar guardar y desaparecen al corregir el campo).
 - Idioma: `flutter_localizations` (incluido en el SDK) con `locale: es_CR`, para que los textos de Material (selector de fecha, etc.) salgan en español aunque el teléfono esté en otro idioma.
 - El repositorio se crea en `main.dart` y se pasa por constructor a `BudgetZlateApp` (`app.dart`) y de ahí a las pantallas. Así las pruebas pueden usar sus propios datos.
 - Si el estado compartido se complica, la primera opción a evaluar es `ChangeNotifier` del propio SDK.
@@ -100,9 +102,12 @@ abstract class Autenticacion {
   Stream<bool> get cambiosDeSesion;
   Future<void> iniciarSesion({required String correo, required String contrasena});
   Future<bool> registrarse({required String correo, required String contrasena}); // true = ya con sesión
+  Future<void> reenviarConfirmacion({required String correo}); // T6: auth.resend(type: signup)
   Future<void> cerrarSesion();
 }
 ```
+
+- `ErrorAutenticacion.correoSinConfirmar` (T6) indica que el error fue `email_not_confirmed`; la pantalla de acceso muestra entonces "Reenviar correo de confirmación" (también tras crear una cuenta). Para reenviar solo se valida el campo de correo (`GlobalKey<FormFieldState>`).
 
 - Segunda (y última prevista) abstracción, por el mismo motivo que el repositorio: la app usa `AutenticacionSupabase` y las pruebas `AutenticacionFalsa` (`test/apoyo/`), sin red.
 - Los errores de Supabase se traducen a `ErrorAutenticacion` con mensaje en español (`mensajeDeError`, por `code`).
