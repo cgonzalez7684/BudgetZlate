@@ -122,7 +122,7 @@ Se divide en dos partes que se entregan por separado.
 
 ---
 
-## [ ] T5 — Filtro y resumen mensual
+## [x] T5 — Filtro y resumen mensual
 
 **Objetivo:** ver los gastos de un mes y sus totales.
 
@@ -138,3 +138,5 @@ Se divide en dos partes que se entregan por separado.
 - Pruebas unitarias de `filtrarPorMes` (límites de mes, febrero bisiesto, diciembre → enero) y `resumenPorCategoria`.
 - Prueba de widget: cambiar de mes cambia la lista y los totales.
 - Manual en el emulador.
+
+**Resultado (2026-10-17):** completada. 79 pruebas en verde; revisión visual en el emulador con datos de ejemplo en memoria (octubre, septiembre, agosto vacío; sumas correctas; "siguiente" desactivado en el mes actual); el usuario lo confirmó en su teléfono con sus datos reales. Decisiones: el filtro y el resumen se calculan en la app sobre todos los gastos cargados (funciones puras en `lib/utils/resumen_mensual.dart`); no se navega a meses futuros; al guardar un gasto la lista salta a su mes; la pantalla acepta `mesInicial` para que las pruebas no dependan de la fecha actual.

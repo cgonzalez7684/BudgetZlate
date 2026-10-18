@@ -16,6 +16,7 @@ void main() {
       BudgetZlateApp(
         repository: GastosRepositoryMemoria.conEjemplos(),
         autenticacion: autenticacion,
+        mesInicial: DateTime(2026, 10), // mes de los gastos de ejemplo
       ),
     );
     await tester.pumpAndSettle();

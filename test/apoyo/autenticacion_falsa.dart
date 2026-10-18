@@ -60,7 +60,10 @@ class AutenticacionFalsa implements Autenticacion {
 }
 
 /// La app con una sesión ya iniciada, para probar las pantallas de gastos.
-BudgetZlateApp appConSesion(GastosRepository repository) => BudgetZlateApp(
-  repository: repository,
-  autenticacion: AutenticacionFalsa(haySesion: true),
-);
+/// [mes] fija el mes que muestra la lista (por defecto, el actual).
+BudgetZlateApp appConSesion(GastosRepository repository, {DateTime? mes}) =>
+    BudgetZlateApp(
+      repository: repository,
+      autenticacion: AutenticacionFalsa(haySesion: true),
+      mesInicial: mes,
+    );

@@ -76,7 +76,14 @@ void main() {
 
     expect(find.text('Nuevo gasto'), findsNothing); // volvió a la lista
     expect(find.text('Taxi al aeropuerto'), findsOneWidget);
-    expect(find.text('₡8 500,50'), findsOneWidget);
+    // En la lista; el resumen también muestra el monto (total y Transporte).
+    expect(
+      find.descendant(
+        of: find.byType(ListView),
+        matching: find.text('₡8 500,50'),
+      ),
+      findsOneWidget,
+    );
     expect(
       find.text('Transporte · ${formatearFecha(DateTime.now())}'),
       findsOneWidget,
@@ -90,7 +97,7 @@ void main() {
     await tester.binding.handlePopRoute(); // botón "atrás" de Android
     await tester.pumpAndSettle();
 
-    expect(find.text('No hay gastos registrados'), findsOneWidget);
+    expect(find.textContaining('No hay gastos en'), findsOneWidget);
   });
 
   testWidgets('el selector de fecha aparece en español', (tester) async {

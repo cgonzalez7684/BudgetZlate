@@ -4,7 +4,7 @@
 
 ## Estado actual
 
-T4 completada (T4a y T4b): autenticación con Supabase y gastos guardados en la tabla `gastos` con RLS; cada usuario solo ve los suyos. Próxima tarea: T5 (filtro y resumen mensual).
+**Versión 1 completa (2026-10-17):** T0–T5 terminadas. T2–T4 están en el commit `3832082` (en `main`, sin push); T5 está sin commit. No hay más tareas definidas en `docs/tareas.md`: la siguiente decisión es del usuario (ver "Próximos pasos posibles").
 
 ### Informado por el usuario (no verificado por el agente)
 
@@ -114,6 +114,38 @@ No verificado por el agente: nada contra el proyecto real (requiere las claves y
 11. Opcional, si el SQL Editor tiene selector de rol: elegir rol `authenticated` + usuario B, ejecutar `select * from gastos;` → solo los de B.
 12. Sin conexión: activar el modo avión, agregar un gasto → aviso "No se pudo guardar el gasto…" y la lista muestra "No se pudieron cargar los gastos" con "Reintentar"; desactivar el modo avión → "Reintentar" → vuelve la lista. La app no se cierra.
 
+**T5 (2026-10-17)**
+
+| Comprobación | Resultado |
+|--------------|-----------|
+| `git commit` (pedido por el usuario) | `3832082` en `main` con T2–T4; `config/supabase.json` no incluido (`git ls-files config/` → solo el ejemplo) |
+| `dart format` / `--set-exit-if-changed` | Reformateó 3 archivos; después sin cambios |
+| `flutter analyze` | No issues found |
+| `flutter test` | 79 pruebas, todas pasan. Nuevas: `filtrarPorMes` (día 1 y último día, meses vecinos, febrero bisiesto y no bisiesto, diciembre → enero, otro año, hora), `resumenPorCategoria` (totales, categorías en 0, suma = total, lista vacía, céntimos exactos), `mesAnterior`/`mesSiguiente`, `formatearMes`; pantalla: filtro del mes, resumen con ₡0,00, cambiar de mes cambia lista y totales, "siguiente" desactivado en el mes actual, editar la fecha a otro mes salta a ese mes. Pruebas existentes adaptadas (mes fijo y montos buscados dentro de la lista) |
+| Emulador con datos de ejemplo en memoria (punto de entrada temporal `lib/main_revision.dart`, ya borrado) | octubre 2026: total ₡44 321,25 (Alimentación ₡25 350,75, Transporte ₡520,00, Servicios ₡18 450,50, Otros ₡0,00), "siguiente" desactivado; septiembre: solo "Corte de cabello" ₡6 000,00; agosto: todo ₡0,00 y "No hay gastos en agosto 2026". `logcat`: 0 errores de Flutter |
+
+No verificado por el agente: la pantalla con datos reales de Supabase (requiere la cuenta del usuario).
+
+**Prueba manual en el teléfono (informada por el usuario, 2026-10-17):** mes actual con › desactivado, resumen con las 4 categorías y suma correcta, salto al mes del gasto guardado, ‹ y › cambian lista y totales: confirmado. **T5 completada.** Antes de cerrarla, el agente volvió a ejecutar formato, `flutter analyze`, `flutter test` (79 OK) y la búsqueda de claves (sin resultados).
+
+## Criterios de aceptación de la versión 1 (`docs/alcance.md`)
+
+| # | Criterio (resumen) | Evidencia |
+|---|--------------------|-----------|
+| A1 | Sin sesión, pantalla de acceso | Prueba de widget (`acceso_screen_test`) + usuario en el teléfono (T4a) |
+| A2 | Registro, inicio y cierre de sesión | Pruebas de widget + usuario en el teléfono. El correo de confirmación de principio a fin quedó pendiente (límite del SMTP gratuito) |
+| A3 | Crear gasto válido | Prueba de widget + emulador (T2) + usuario con Supabase (T4b) |
+| A4 | Validaciones del formulario en español | Pruebas de widget (T2) + emulador |
+| A5 | Editar gasto | Pruebas de widget + emulador (T3) + usuario con Supabase (T4b) |
+| A6 | Eliminar con confirmación | Pruebas de widget + emulador (T3) + usuario con Supabase (T4b) |
+| A7 | Persistencia tras reabrir | Usuario en el teléfono (T4b) |
+| A8 | Usuario B no ve ni modifica gastos de A | Usuario: app con A y B, SQL de verificación y REST sin sesión denegado (T4b) |
+| A9 | Filtro mensual con día 1 y último día | Pruebas unitarias y de widget (T5) + emulador + usuario |
+| A10 | Total y por categoría; suma = total | Pruebas unitarias y de widget (T5) + emulador + usuario |
+| A11 | Formato CRC sin errores de redondeo | Pruebas unitarias (`formato_moneda_test`, `resumen_mensual_test`) |
+| A12 | Sin `service_role` ni credenciales en el repositorio | `git grep` de `CLAUDE.md` sin resultados; `config/supabase.json` ignorado y fuera del commit `3832082` |
+| A13 | `flutter analyze` sin problemas y `flutter test` en verde | Ejecutados por el agente: sin problemas, 79 pruebas OK |
+
 ## Tareas
 
 - [x] T0 — Documentación base
@@ -122,12 +154,20 @@ No verificado por el agente: nada contra el proyecto real (requiere las claves y
 - [x] T3 — Edición y eliminación
 - [x] T4a — Autenticación
 - [x] T4b — Persistencia con RLS
-- [ ] T5 — Filtro y resumen mensual ← **próxima tarea**
+- [x] T5 — Filtro y resumen mensual
 
 ## Pendientes
 
-- Hacer commit de T2, T3, T4a y T4b (están sin confirmar en el árbol de trabajo).
-- Probar de principio a fin el correo de confirmación (límite del SMTP gratuito; o configurar SMTP propio).
-- Eliminar solo se descubre deslizando la fila; si resulta poco evidente, añadir también un botón "Eliminar" en "Editar gasto".
-- Mejora opcional observada en el emulador: los mensajes de error no desaparecen al corregir el campo hasta pulsar "Guardar" otra vez. Se puede cambiar con `autovalidateMode: AutovalidateMode.onUserInteraction` en el `Form`.
-- El nombre del icono de la app en Android sigue siendo `budget_zlate` (`android/app/src/main/AndroidManifest.xml`).
+- Hacer commit de T5 (T2–T4 ya están en `3832082`). Hacer push a GitHub cuando el usuario lo decida.
+
+## Próximos pasos posibles (no son tareas aún; el usuario decide)
+
+Mejoras pequeñas de la versión 1 (observadas durante el desarrollo):
+
+- Nombre de la app bajo el icono: sigue siendo `budget_zlate` (`android/app/src/main/AndroidManifest.xml`) → "BudgetZlate".
+- Mensajes de validación que desaparecen al corregir el campo (`autovalidateMode: AutovalidateMode.onUserInteraction`).
+- Botón "Eliminar" también en "Editar gasto" (deslizar es poco evidente).
+- Botón "Reenviar correo de confirmación" en la pantalla de acceso.
+- Correo de confirmación de principio a fin: configurar un SMTP propio en Supabase (Resend, Brevo…).
+
+Fuera de alcance de la versión 1 (`docs/alcance.md`), candidatos para una versión 2: comprobantes o fotos de recibos, notificaciones, funcionamiento sin conexión, categorías personalizadas, presupuestos, gráficos, exportación.

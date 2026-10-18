@@ -15,10 +15,15 @@ class BudgetZlateApp extends StatelessWidget {
     super.key,
     required this.repository,
     required this.autenticacion,
+    this.mesInicial,
   });
 
   final GastosRepository repository;
   final Autenticacion autenticacion;
+
+  /// Mes que muestra la lista al abrir (por defecto, el actual). Solo las
+  /// pruebas lo indican.
+  final DateTime? mesInicial;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +37,11 @@ class BudgetZlateApp extends StatelessWidget {
       locale: const Locale('es', 'CR'),
       supportedLocales: const [Locale('es', 'CR')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      home: PuertaAcceso(repository: repository, autenticacion: autenticacion),
+      home: PuertaAcceso(
+        repository: repository,
+        autenticacion: autenticacion,
+        mesInicial: mesInicial,
+      ),
     );
   }
 }
@@ -46,10 +55,12 @@ class PuertaAcceso extends StatelessWidget {
     super.key,
     required this.repository,
     required this.autenticacion,
+    this.mesInicial,
   });
 
   final GastosRepository repository;
   final Autenticacion autenticacion;
+  final DateTime? mesInicial;
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +74,7 @@ class PuertaAcceso extends StatelessWidget {
           return ListaGastosScreen(
             repository: repository,
             onCerrarSesion: autenticacion.cerrarSesion,
+            mesInicial: mesInicial,
           );
         }
         return AccesoScreen(autenticacion: autenticacion);

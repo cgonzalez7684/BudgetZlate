@@ -22,10 +22,10 @@ lib/
     lista_gastos_screen.dart
     formulario_gasto_screen.dart    # sirve para crear y editar
     acceso_screen.dart              # tarea 4
-    resumen_screen.dart             # tarea 5 (puede integrarse en la lista)
   utils/
     formato_moneda.dart             # céntimos <-> texto ₡
-    formato_fecha.dart              # DateTime -> dd/mm/aaaa
+    formato_fecha.dart              # DateTime -> dd/mm/aaaa y "octubre 2026"
+    resumen_mensual.dart            # filtrarPorMes, resumenPorCategoria, mes anterior/siguiente (T5)
 test/                               # refleja la estructura de lib/
   apoyo/                            # versiones falsas para pruebas (autenticación, repositorio que falla)
 supabase/
@@ -79,7 +79,8 @@ abstract class GastosRepository {
 - Tras cada operación, la lista crea un `Future` nuevo que espera la operación y vuelve a leer los gastos (`_recargarTras`); el `FutureBuilder` se encarga del resto.
 - Se justifica porque permite **empezar en memoria y cambiar a Supabase sin tocar las pantallas**, y usar la versión en memoria en las pruebas.
 - Los métodos son `Future` desde el principio, aunque la versión en memoria no lo necesite, para que el cambio a Supabase no altere la interfaz.
-- El filtro mensual y el resumen son **funciones puras** sobre `List<Gasto>` (fáciles de probar sin Supabase). Si el volumen creciera, el filtro podría pasarse a la consulta.
+- El filtro mensual y el resumen son **funciones puras** sobre `List<Gasto>` (`lib/utils/resumen_mensual.dart`, fáciles de probar sin Supabase). Se cargan todos los gastos del usuario y se filtra en la app; si el volumen creciera, el filtro podría pasarse a la consulta (`gte`/`lt` sobre `fecha`).
+- La lista y el resumen están en la misma pantalla (no hay `resumen_screen.dart`): selector de mes arriba, tarjeta de resumen y lista del mes. Cambiar de mes no vuelve a pedir datos.
 
 ## Estado y navegación
 
